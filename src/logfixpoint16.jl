@@ -280,42 +280,41 @@ end
 
 
 function Base.:(-)(x::LogFixPoint16,y::LogFixPoint16)
-	return x + (-y)
+    return x + (-y)
 end
 
 function Base.nextfloat(x::LogFixPoint16)
-	isnan(x) && return nan(LogFixPoint16)
-	(x == -floatmin(LogFixPoint16)) && return zero(LogFixPoint16)
+    isnan(x) && return nan(LogFixPoint16)
+    (x == -floatmin(LogFixPoint16)) && return zero(LogFixPoint16)
 
-	sign = signbit(x)
-	ui = reinterpret(UInt16,x)
-	sign && return reinterpret(LogFixPoint16,ui - 0x0001)
-	return reinterpret(LogFixPoint16,ui + 0x0001)
+    sign = signbit(x)
+    ui = reinterpret(UInt16,x)
+    sign && return reinterpret(LogFixPoint16,ui - 0x0001)
+    return reinterpret(LogFixPoint16,ui + 0x0001)
 end
 
 function Base.nextfloat(x::LogFixPoint16,n::Int)
-	for i in 1:n
-		x = nextfloat(x)
-	end
-	return x
+    for i in 1:n
+        x = nextfloat(x)
+    end
+    return x
 end
 
 function Base.prevfloat(x::LogFixPoint16,n::Int)
-	for i in 1:n
-		x = prevfloat(x)
-	end
-	return x
+    for i in 1:n
+        x = prevfloat(x)
+    end
+    return x
 end
-
 
 function Base.prevfloat(x::LogFixPoint16)
 	# -floatmax is 0xffff and would otherwise prevfloat to 0=0x0000
-	isnan(x) | (x == -floatmax(LogFixPoint16)) && return nan(LogFixPoint16)
+    isnan(x) | (x == -floatmax(LogFixPoint16)) && return nan(LogFixPoint16)
 
-	sign = signbit(x)
-	ui = reinterpret(UInt16,x)
-	sign && return reinterpret(LogFixPoint16,ui + 0x0001)
-	return reinterpret(LogFixPoint16,ui - 0x0001)
+    sign = signbit(x)
+    ui = reinterpret(UInt16,x)
+    sign && return reinterpret(LogFixPoint16,ui + 0x0001)
+    return reinterpret(LogFixPoint16,ui - 0x0001)
 end
 
 # function Base.log2(x::LogFixPoint16)
