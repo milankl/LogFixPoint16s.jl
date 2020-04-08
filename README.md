@@ -34,7 +34,7 @@ X = (-1)^s * 2^x
 ```
 with `s` being the sign bit and `x` the fixed-point number in the exponent. E.g. the number `3` is encoded as
 
-```
+```julia
 julia> bitstring(LogFixPoint16(3),:split)
 "0 1000001 10010110"
 ```
@@ -45,7 +45,7 @@ The sign bit is `0`, the sign bit of the signed integer is `1` (meaning +, [exce
 ```
 The only exceptions are the bitpatterns `0x0000` (zero) and `0x8000` (Not-a-Real, NaR). The smallest/largest representable numbers are
 
-```
+```julia
 julia> floatmin(LogFixPoint16)
 LogFixPoint16(5.435709e-20)
 
@@ -60,6 +60,35 @@ Logarithmic fixed-point numbers are placed equi-distantly on a log-scale. Conseq
 As a consequence there is no rounding error for logarithmic fixed-point numbers in multiplication, division or power/root - similarly as there is no rounding error for fixed-point numbers for addition and subtraction.
 
 ![decimal precision](figs/decimal_precision.png?raw=true "decimal precision")
+
+### Benchmarks
+
+`LogFixPoint16` is considerably faster than `Float16` for addition (x1.5) and multiplication (x20)
+
+```julia
+julia> using LogFixPoints, BenchmarkTools
+julia> A = rand(Float32,1000,1000);
+julia> B = Float16.(A);
+julia> C = LogFixPoint16.(A);
+julia> @btime +($A,$A);       # Float32
+  478.892 μs (2 allocations: 3.81 MiB)
+
+julia> @btime +($B,$B);       # Float16
+  9.966 ms (2 allocations: 1.91 MiB)
+
+julia> @btime +($C,$C);       # LogFixPoint16
+  6.127 ms (2 allocations: 1.91 MiB)
+  
+julia> @btime .*($A,$A);      # Float32
+  390.930 μs (2 allocations: 3.81 MiB)
+
+julia> @btime .*($B,$B);      # Float16
+  18.753 ms (2 allocations: 1.91 MiB)
+
+julia> @btime .*($C,$C);      # LogFixPoint16
+  801.077 μs (2 allocations: 1.91 MiB)
+```
+
 
 ### Installation
 
