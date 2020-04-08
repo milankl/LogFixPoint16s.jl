@@ -144,8 +144,8 @@ function Base.:(*)(x::LogFixPoint16,y::LogFixPoint16)
 end
 
 function Base.:(/)(x::LogFixPoint16,y::LogFixPoint16)
-    iszero(x) | iszero(y) && return zero(LogFixPoint16)
-    isnan(x) | isnan(y) && return nan(LogFixPoint16)
+    iszero(x) && return zero(LogFixPoint16)
+    isnan(x) | isnan(y) | iszero(y) && return nan(LogFixPoint16)
 
     uix = reinterpret(UInt16,x)
     uiy = reinterpret(UInt16,y)
@@ -181,6 +181,7 @@ function Base.sqrt(x::LogFixPoint16)
 	signbit(x) && return nan(LogFixPoint16) #TODO throw DomainError?
 
 	uix = reinterpret(UInt16,x)
+	#TODO is this correct rounding?
 	uix = (uix >> 1) + bit14flip
 	return reinterpret(LogFixPoint16,uix)
 end
