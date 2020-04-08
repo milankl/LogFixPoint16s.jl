@@ -3,7 +3,7 @@
 
 # LogFixPoints.jl
 
-Exports LogFixPoint16 - a 16bit [logarithmic fixed-point number](https://en.wikipedia.org/wiki/Logarithmic_number_system) format with 1 sign bit, 7 signed integer bits, with its signbit (=bit 15) flipped (i.e. excess-8) and 8 fraction bits.
+Exports LogFixPoint16 - a 16bit [logarithmic fixed-point number](https://en.wikipedia.org/wiki/Logarithmic_number_system) format with 1 sign bit, 7 signed integer bits, and 8 fraction bits.
 
 ### Example use
 
