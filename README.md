@@ -3,7 +3,7 @@
 
 # LogFixPoints.jl
 
-Exports LogFixPoint16 - a 16bit logarithmic fixed-point number format with 1 sign bit, 7 signed integer bits, with its signbit (=bit 15) flipped (i.e. excess-8) and 8 fraction bits.
+Exports LogFixPoint16 - a 16bit [logarithmic fixed-point number](https://en.wikipedia.org/wiki/Logarithmic_number_system) format with 1 sign bit, 7 signed integer bits, with its signbit (=bit 15) flipped (i.e. excess-8) and 8 fraction bits.
 
 ### Example use
 
@@ -24,6 +24,26 @@ LogFixPoint16(2.4837155)
 ### Features
 
 Exports `LogFixPoint16, iszero, isnan, signbit, zero, nan, floatmin, floatmax, one, -, inv, *, / , +, -, sqrt, nextfloat, prevfloat, ==, <=, >, >=, show, bitstring` as well as conversions to and from `Float64, Float32, Float16, Int`. 
+
+### Theory
+
+A number `X` is encoded as LogFixPoint16 as
+
+```
+X = (-1)^s * 2^x
+```
+with `s` being the sign bit and `x` the fixed-point number in the exponent. E.g. the number `3` is encoded as
+
+```
+julia> bitstring(LogFixPoint16(3),:split)
+"0 1000001 10010110"
+```
+The sign bit is `0`, the sign bit of the signed integer is `1` (meaning +, [excess-8](https://en.wikipedia.org/wiki/Signed_number_representations#Comparison_table) representation) such that the integer bits equal to `1`. The fraction bits are 1/2 + 1/16 + 1/64 + 1/128. Together this is
+
+```
+0 1000001 10010110 = +2^(1 + 1/2 + 1/16 + 1/64 + 1/128) = 2^1.5859375 ≈ 3
+```
+The only exceptions are the bitpatterns `0x0000` (zero) and `0x8000` (Not-a-Real, NaR).
 
 ### Installation
 
