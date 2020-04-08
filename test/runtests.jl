@@ -1,5 +1,6 @@
 using Test
-using LogFixPoint
+using LogFixPoints
 
-@test iszero(Approx16(0))
-@test iszero(Approx16(-0))
+@test iszero(LogFixPoint16(0))
+@test iszero(LogFixPoint16(-0))
+@test LogFixPoint16(0) == LogFixPoint16(-0)
