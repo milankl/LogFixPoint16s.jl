@@ -25,17 +25,17 @@ Base.floatmax(::Type{LogFixPoint16}) = reinterpret(LogFixPoint16,0x7fff)
 Base.one(::Type{LogFixPoint16}) = reinterpret(LogFixPoint16,0x4000)
 
 function Base.:(-)(x::LogFixPoint16)
-	iszero(x) && return zero(LogFixPoint16)
-	isnan(x) && return nan(LogFixPoint16)
-	return reinterpret(LogFixPoint16,reinterpret(UInt16,x) ⊻ 0x8000)
+    iszero(x) && return zero(LogFixPoint16)
+    isnan(x) && return nan(LogFixPoint16)
+    return reinterpret(LogFixPoint16,reinterpret(UInt16,x) ⊻ 0x8000)
 end
 
 function Base.inv(x::LogFixPoint16)
-	iszero(x) && return nan(LogFixPoint16)
-	ui = reinterpret(UInt16,x)
-	sign = ui & 0x8000
-	val = -ui & 0x7fff		# two's complement of all except sign bit
-	return reinterpret(LogFixPoint16,sign | val)
+    iszero(x) && return nan(LogFixPoint16)
+    ui = reinterpret(UInt16,x)
+    sign = ui & 0x8000
+    val = -ui & 0x7fff		# two's complement of all except sign bit
+    return reinterpret(LogFixPoint16,sign | val)
 end
 
 const fbit_scale = 256  # 2^n_frac with n_frac = 8 fraction bits
@@ -124,9 +124,9 @@ function Base.:(*)(x::LogFixPoint16,y::LogFixPoint16)
     yval = (uiy & 0x7fff) % Int32
 
     sign = xsign ⊻ ysign
-	# xval and yval both contain the bias bit15flip
-	# so subtract bit15flip, such that the result is again
-	# biased with (a single) + bit15flip
+    # xval and yval both contain the bias bit15flip
+    # so subtract bit15flip, such that the result is again
+    # biased with (a single) + bit15flip
     val = xval + yval - bit15flip
 
     # check for over or underflow
@@ -177,13 +177,13 @@ function Base.:(/)(x::LogFixPoint16,y::LogFixPoint16)
 end
 
 function Base.sqrt(x::LogFixPoint16)
-	iszero(x) && return zero(LogFixPoint16)
-	signbit(x) && return nan(LogFixPoint16) #TODO throw DomainError?
+    iszero(x) && return zero(LogFixPoint16)
+    signbit(x) && return nan(LogFixPoint16) #TODO throw DomainError?
 
-	uix = reinterpret(UInt16,x)
-	#TODO is this correct rounding?
-	uix = (uix >> 1) + bit14flip
-	return reinterpret(LogFixPoint16,uix)
+    uix = reinterpret(UInt16,x)
+    #TODO is this correct rounding?
+    uix = (uix >> 1) + bit14flip
+    return reinterpret(LogFixPoint16,uix)
 end
 
 """ Precomputes the Gaussian Logarithm as a table lookup for addition. Let
@@ -204,13 +204,13 @@ ẑ = ŷ - (ŷ-x̂) + a*log2(1+2^((ŷ-x̂)/a)
 
 The last two terms are precomputed into a table lookup."""
 function createAddLookup(a::Int,n::Integer)
-	tab = Array{Int32,1}(undef,n)
+    tab = Array{Int32,1}(undef,n)
 
-	for i in 0:n-1
-		tab[i+1] = Int32(round(-i+a*log2(1+2^(i/a))))
-	end
+    for i in 0:n-1
+        tab[i+1] = Int32(round(-i+a*log2(1+2^(i/a))))
+    end
 
-	return tab
+    return tab
 end
 
 """ Precomputes the Gaussian Logarithm as a table lookup for subtraction.
@@ -226,15 +226,15 @@ ẑ = ŷ - (ŷ-x̂) + a*log2(abs(1-2^((ŷ-x̂)/a))
 
 The last two terms are precomputed into a table lookup."""
 function createSubLookup(a::Int,n::Integer)
-	tab = Array{Int32,1}(undef,n)
+    tab = Array{Int32,1}(undef,n)
 
     tab[1] = -logfixpoint16_max
 
-	for i in 1:n-1
-		tab[i+1] = -max(-Int32(round(-i+a*log2(abs(1-2^(i/a))))) -1,0)
-	end
+    for i in 1:n-1
+        tab[i+1] = -max(-Int32(round(-i+a*log2(abs(1-2^(i/a))))) -1,0)
+    end
 
-	return tab
+    return tab
 end
 
 const max_diff_resolvable = Int32(2440)     # table indices higher than that are 0
@@ -242,29 +242,29 @@ const addTable = createAddLookup(fbit_scale,max_diff_resolvable)
 const subTable = createSubLookup(fbit_scale,max_diff_resolvable)
 
 function Base.:(+)(x::LogFixPoint16,y::LogFixPoint16)
-	isnan(x) | isnan(y) && return nan(LogFixPoint16)
+    isnan(x) | isnan(y) && return nan(LogFixPoint16)
 
-	uix = reinterpret(UInt16,x)
-	uiy = reinterpret(UInt16,y)
+    uix = reinterpret(UInt16,x)
+    uiy = reinterpret(UInt16,y)
 
-	xsign = uix & 0x8000
-	ysign = uiy & 0x8000
+    xsign = uix & 0x8000
+    ysign = uiy & 0x8000
 
-	xval = (uix & 0x7fff) % Int32
-	yval = (uiy & 0x7fff) % Int32
+    xval = (uix & 0x7fff) % Int32
+    yval = (uiy & 0x7fff) % Int32
 
-	# y is always the larger value
+    # y is always the larger value
     # resulting sign is always that of y
     # in a-a sign is 1, but case is caught in underflow: sign set to 0
-	xval,yval,xsign,ysign = xval > yval ? (yval,xval,ysign,xsign) : (xval,yval,xsign,ysign)
-	diff = yval - xval     # diff >= 0
+    xval,yval,xsign,ysign = xval > yval ? (yval,xval,ysign,xsign) : (xval,yval,xsign,ysign)
+    diff = yval - xval     # diff >= 0
 
     # pull Gaussian logarithms from addTable
-	@inbounds increment = diff < max_diff_resolvable ?
-            (xsign == ysign ? addTable[diff+1] : subTable[diff+1]) : zero(Int32)
-	val = yval + increment
+    @inbounds increment = diff < max_diff_resolvable ?
+        (xsign == ysign ? addTable[diff+1] : subTable[diff+1]) : zero(Int32)
+    val = yval + increment
 
-	# check for over or underflow
+    # check for over or underflow
     underflow = val < zero(Int32)
     overflow = val > logfixpoint16_max
 
@@ -318,62 +318,62 @@ function Base.prevfloat(x::LogFixPoint16)
 	return reinterpret(LogFixPoint16,ui - 0x0001)
 end
 
-function Base.log2(x::LogFixPoint16)
-	signbit(x) | iszero(x) && return nan(LogFixPoint16)
-	ui =  reinterpret(UInt16,x) % Int
-	ui -= Int(bit15flip)
-	ui /= 2^8
-	return ui
-end
+# function Base.log2(x::LogFixPoint16)
+# 	signbit(x) | iszero(x) && return nan(LogFixPoint16)
+# 	ui =  reinterpret(UInt16,x) % Int
+# 	ui -= Int(bit15flip)
+# 	ui /= 2^8
+# 	return ui
+# end
 
 function Base.:(==)(x::LogFixPoint16,y::LogFixPoint16)
-	isnan(x) | isnan(y) && return false
-	return reinterpret(UInt16,x) == reinterpret(UInt16,y)
+    isnan(x) | isnan(y) && return false
+    return reinterpret(UInt16,x) == reinterpret(UInt16,y)
 end
 
 function Base.:(>)(x::LogFixPoint16,y::LogFixPoint16)
-	isnan(x) | isnan(y) && return nan(LogFixPoint16)
+    isnan(x) | isnan(y) && return nan(LogFixPoint16)
 
-	uix = reinterpret(UInt16,x)
-	uiy = reinterpret(UInt16,y)
+    uix = reinterpret(UInt16,x)
+    uiy = reinterpret(UInt16,y)
 
-	xsign = uix & 0x8000
-	ysign = uiy & 0x8000
+    xsign = uix & 0x8000
+    ysign = uiy & 0x8000
 
-	xsign > ysign && return false
-	xsign < ysign && return true
+    xsign > ysign && return false
+    xsign < ysign && return true
 
-	return uix > uiy
+    return uix > uiy
 end
 
 function Base.:(<)(x::LogFixPoint16,y::LogFixPoint16)
-	isnan(x) | isnan(y) && return nan(LogFixPoint16)
+    isnan(x) | isnan(y) && return nan(LogFixPoint16)
 
-	uix = reinterpret(UInt16,x)
-	uiy = reinterpret(UInt16,y)
+    uix = reinterpret(UInt16,x)
+    uiy = reinterpret(UInt16,y)
 
-	xsign = uix & 0x8000
-	ysign = uiy & 0x8000
+    xsign = uix & 0x8000
+    ysign = uiy & 0x8000
 
-	xsign > ysign && return true
-	xsign < ysign && return false
+    xsign > ysign && return true
+    xsign < ysign && return false
 
-	return uix < uiy
+    return uix < uiy
 end
 
 function Base.:(<=)(x::LogFixPoint16,y::LogFixPoint16)
-	isnan(x) | isnan(y) && return nan(LogFixPoint16)
+    isnan(x) | isnan(y) && return nan(LogFixPoint16)
 
-	uix = reinterpret(UInt16,x)
-	uiy = reinterpret(UInt16,y)
+    uix = reinterpret(UInt16,x)
+    uiy = reinterpret(UInt16,y)
 
-	xsign = uix & 0x8000
-	ysign = uiy & 0x8000
+    xsign = uix & 0x8000
+    ysign = uiy & 0x8000
 
-	xsign > ysign && return true
-	xsign < ysign && return false
+    xsign > ysign && return true
+    xsign < ysign && return false
 
-	return uix <= uiy
+    return uix <= uiy
 end
 
 # Showing
