@@ -1,7 +1,7 @@
-[![Build Status](https://travis-ci.com/milankl/LogFixPoints.jl.svg?branch=master)](https://travis-ci.com/milankl/LogFixPoints.jl)
-[![Build Status](https://ci.appveyor.com/api/projects/status/github/milankl/LogFixPoints.jl?svg=true)](https://ci.appveyor.com/project/milankl/LogFixPoints-jl)
+[![Build Status](https://travis-ci.com/milankl/LogFixPoint16s.jl.svg?branch=master)](https://travis-ci.com/milankl/LogFixPoint16s.jl)
+[![Build Status](https://ci.appveyor.com/api/projects/status/github/milankl/LogFixPoint16s.jl?svg=true)](https://ci.appveyor.com/project/milankl/LogFixPoint16s-jl)
 
-# LogFixPoints.jl
+# LogFixPoint16s.jl
 
 Exports LogFixPoint16 - a 16bit [logarithmic fixed-point number](https://en.wikipedia.org/wiki/Logarithmic_number_system) format with 1 sign bit, 7 signed integer bits, and 8 fraction bits.
 
