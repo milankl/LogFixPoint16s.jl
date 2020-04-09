@@ -1,5 +1,5 @@
 using Test
-using LogFixPoints
+using LogFixPoint16s
 
 @testset "Zero" begin
     @test iszero(LogFixPoint16(0))
