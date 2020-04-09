@@ -93,5 +93,5 @@ julia> @btime .*($C,$C);      # LogFixPoint16
 ### Installation
 
 ```julia
-julia> ] add https://github.com/milankl/LogFixPoints.jl
+julia> ] add https://github.com/milankl/LogFixPoint16s.jl
 ```
