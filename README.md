@@ -8,7 +8,7 @@ Exports LogFixPoint16 - a 16bit [logarithmic fixed-point number](https://en.wiki
 ### Example use
 
 ```julia
-julia> using LogFixPoints
+julia> using LogFixPoint16s
 julia> v = LogFixPoint16.(rand(Float32,5))
 5-element Array{LogFixPoint16,1}:
  LogFixPoint16(0.04741747)
