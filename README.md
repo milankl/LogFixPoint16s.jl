@@ -66,7 +66,7 @@ As a consequence there is no rounding error for logarithmic fixed-point numbers 
 `LogFixPoint16` is considerably faster than `Float16` for addition (x1.5) and multiplication (x20)
 
 ```julia
-julia> using LogFixPoints, BenchmarkTools
+julia> using LogFixPoint16s, BenchmarkTools
 julia> A = rand(Float32,1000,1000);
 julia> B = Float16.(A);
 julia> C = LogFixPoint16.(A);
