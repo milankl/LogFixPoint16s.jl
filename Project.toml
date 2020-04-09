@@ -1,5 +1,5 @@
-name = "LogFixPoints"
-uuid = "92e8f241-9161-42bc-865b-6902e0af5511"
+name = "LogFixPoint16s"
+uuid = "390f8997-1984-4152-8b9b-a98aeeeff9d0"
 authors = ["milankl"]
 version = "0.1.0"
 

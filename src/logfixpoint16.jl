@@ -278,10 +278,13 @@ function Base.:(+)(x::LogFixPoint16,y::LogFixPoint16)
     return reinterpret(LogFixPoint16,result)
 end
 
-
 function Base.:(-)(x::LogFixPoint16,y::LogFixPoint16)
     return x + (-y)
 end
+
+Base.round(x::LogFixPoint16, r::RoundingMode{:Up}) = LogFixPoint16(ceil(Float32(x)))
+Base.round(x::LogFixPoint16, r::RoundingMode{:Down}) = LogFixPoint16(floor(Float32(x)))
+Base.round(x::LogFixPoint16, r::RoundingMode{:Nearest}) = LogFixPoint16(round(Float32(x)))
 
 function Base.nextfloat(x::LogFixPoint16)
     isnan(x) && return nan(LogFixPoint16)

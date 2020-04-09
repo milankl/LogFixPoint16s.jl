@@ -1,4 +1,4 @@
-module LogFixPoints
+module LogFixPoint16s
 
     export LogFixPoint16, nan
 
