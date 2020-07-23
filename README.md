@@ -55,7 +55,7 @@ LogFixPoint16(1.8396865e19)
  
 ### Decimal precision
 
-Logarithmic fixed-point numbers are placed equi-distantly on a log-scale. Consequently, their decimal precision is perfectly flat throughout the dynamic range of representable numbers. In contrast, floating-point numbers are only equi-distant on a log-scale when the significand is held fixed; the significant bits, however, are placed equi-distant on a non-log scale.
+Logarithmic fixed-point numbers are placed equi-distantly on a log-scale. Consequently, their decimal precision is perfectly flat throughout the dynamic range of representable numbers. In contrast, floating-point numbers are only equi-distant in logarithmic space when the significand is held fixed; the significant bits, however, are placed equi-distant in linear space.
 
 As a consequence there is no rounding error for logarithmic fixed-point numbers in multiplication, division or power/root - similarly as there is no rounding error for fixed-point numbers for addition and subtraction.
 
