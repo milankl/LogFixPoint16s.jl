@@ -1,4 +1,4 @@
-using Test, Printf
+using Test
 using LogFixPoint16s
 
 include("logfixpoint16.jl")
