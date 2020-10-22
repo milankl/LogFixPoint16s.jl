@@ -22,6 +22,11 @@ nan(::Type{LogFixPoint16}) = reinterpret(LogFixPoint16,0x8000)
 
 Base.floatmin(::Type{LogFixPoint16}) = reinterpret(LogFixPoint16,0x0001)
 Base.floatmax(::Type{LogFixPoint16}) = reinterpret(LogFixPoint16,0x7fff)
+
+# In the absence of -Inf,Inf define typemin,typemax as floatmin,floatmax
+Base.typemin(::Type{LogFixPoint16}) = floatmin(LogFixPoint16)
+Base.typemax(::Type{LogFixPoint16}) = floatmax(LogFixPoint16)
+
 Base.one(::Type{LogFixPoint16}) = reinterpret(LogFixPoint16,0x4000)
 
 function Base.:(-)(x::LogFixPoint16)
@@ -38,8 +43,13 @@ function Base.inv(x::LogFixPoint16)
     return reinterpret(LogFixPoint16,sign | val)
 end
 
-const fbit_scale = 256  # 2^n_frac with n_frac = 8 fraction bits
-const two56_over_logof2 = fbit_scale/log(2f0)
+# Default number of fraction bits
+const nfrac = Ref{Int}(9)
+const nint = Ref{Int}(15-nfrac[])
+const scale = Ref{Int}(2^nfrac[])
+const scale_over_logof2 = Ref{Float32}(scale[]/log(2f0))
+const max_nfrac_supported = 11
+
 const logfixpoint16_max = Int32(2^15)
 const bit15flip = Int32(2^14)    # flip the meaning of the sign bit of integers
 const bit14flip = UInt16(2^13)
@@ -48,9 +58,9 @@ function LogFixPoint16(f::Float32)
     iszero(f) && return zero(LogFixPoint16)
     ~isfinite(f) && return nan(LogFixPoint16)
 
-    # two56_logof2 = 256/log(2) to shift by 8 fraction bits, 256=2^8
+    # scale_over_logof2 = scale/log(2) to scale by nfrac fraction bits
     # use log instead of log2 as it's faster and include 1/log(2) in the constant
-    val = Int32(round(two56_over_logof2*log(abs(f)))) + bit15flip
+    val = Int32(round(scale_over_logof2[]*log(abs(f)))) + bit15flip
     sign = ((reinterpret(UInt32,f) & 0x8000_0000) >> 16) % UInt16
 
     # check for over or underflow
@@ -72,21 +82,20 @@ function createF32LookupTable(nint::Int,nfrac::Int)
 
     table = Array{UInt32,1}(undef,2^(nint+nfrac))
 
-    c = Float32(2^nfrac)        # use f32 to avoid a promotion to f64 in the loop
+    c = Float64(2^nfrac)        # use f32 to avoid a promotion to f64 in the loop
     bias = 2^(nint+nfrac-1)	    # exponent bias for signed integers
 
     for i in 1:2^(nint+nfrac)
         # convert index to signed integer, with signbit flipped
         si = i-bias
-        # store floats as UInt32 for bitwise operations
-        table[i] = reinterpret(UInt32,2f0^(si/c))
+        # store float32s as UInt32 for bitwise operations
+        table[i] = reinterpret(UInt32,Float32(2.0 ^ (si/c)))
     end
 
     return table
 end
 
-# for 7 integer bits and 8 fraction bits
-const f32lookup = createF32LookupTable(7,8)
+const f32lookup = createF32LookupTable(nint[],nfrac[])
 
 function Float32(x::LogFixPoint16)
     iszero(x) && return 0f0
@@ -110,20 +119,28 @@ LogFixPoint16(x::Float16) = LogFixPoint16(Float32(x))
 Int(x::LogFixPoint16) = Int(Float32(x))
 LogFixPoint16(x::Int) = LogFixPoint16(Float32(x))
 
+"""Multiplication for LogFixPoint16, equivalent to an addition of the exponents."""
 function Base.:(*)(x::LogFixPoint16,y::LogFixPoint16)
-    iszero(x) | iszero(y) && return zero(LogFixPoint16)
+    # special cases NaR*y = x*NaR = NaR
     isnan(x) | isnan(y) && return nan(LogFixPoint16)
+    # if no NaN present: 0*y = x*0 = 0
+    iszero(x) | iszero(y) && return zero(LogFixPoint16)
 
     uix = reinterpret(UInt16,x)
     uiy = reinterpret(UInt16,y)
 
+    # mask exponent
     xsign = uix & 0x8000
     ysign = uiy & 0x8000
 
+    # mask the sign and cast to Int32
     xval = (uix & 0x7fff) % Int32
     yval = (uiy & 0x7fff) % Int32
 
+    # resulting sign
     sign = xsign ⊻ ysign
+
+    # ADD EXPONENTS
     # xval and yval both contain the bias bit15flip
     # so subtract bit15flip, such that the result is again
     # biased with (a single) + bit15flip
@@ -139,24 +156,33 @@ function Base.:(*)(x::LogFixPoint16,y::LogFixPoint16)
     sign = underflow ? 0x0000 : sign
     sign = overflow ? 0x8000 : sign
 
+    # merge sign and exponent back together
     result = sign | (val % UInt16)
     return reinterpret(LogFixPoint16,result)
 end
 
+"""Division for LogFixPoint16, equivalent to a subtraction of the exponents."""
 function Base.:(/)(x::LogFixPoint16,y::LogFixPoint16)
-    iszero(x) && return zero(LogFixPoint16)
+    # special case, if either x,y =NaN, or y=0 return NaR
     isnan(x) | isnan(y) | iszero(y) && return nan(LogFixPoint16)
+    # else if x=0 return 0
+    iszero(x) && return zero(LogFixPoint16)
 
     uix = reinterpret(UInt16,x)
     uiy = reinterpret(UInt16,y)
 
+    # extract sign
     xsign = uix & 0x8000
     ysign = uiy & 0x8000
 
+    # extract exponent
     xval = (uix & 0x7fff) % Int32
     yval = (uiy & 0x7fff) % Int32
 
+    # combine to obtain the sign of the result
     sign = xsign ⊻ ysign
+
+    # SUBTRACT EXPONENTS
     # xval and yval both contain the bias bit15flip
     # so add bit15flip, such that the result is again
     # biased with (a single) + bit15flip
@@ -172,6 +198,7 @@ function Base.:(/)(x::LogFixPoint16,y::LogFixPoint16)
     sign = underflow ? 0x0000 : sign
     sign = overflow ? 0x8000 : sign
 
+    # merge sign and exponent val
     result = sign | (val % UInt16)
     return reinterpret(LogFixPoint16,result)
 end
@@ -203,11 +230,12 @@ ẑ = x̂ + a*log2(1+2^((ŷ-x̂)/a)     or
 ẑ = ŷ - (ŷ-x̂) + a*log2(1+2^((ŷ-x̂)/a)
 
 The last two terms are precomputed into a table lookup."""
-function createAddLookup(a::Int,n::Integer)
-    tab = Array{Int32,1}(undef,n)
+function createAddLookup(scale::Int)
 
-    for i in 0:n-1
-        tab[i+1] = Int32(round(-i+a*log2(1+2^(i/a))))
+    tab = Array{Int32,1}(undef,max_table_size)
+
+    for i in 0:max_table_size-1
+        tab[i+1] = -i + Int(round(scale*log2(1+2^(i/scale))))
     end
 
     return tab
@@ -225,24 +253,39 @@ ẑ = x̂ + a*log2(abs(1-2^((ŷ-x̂)/a))     or
 ẑ = ŷ - (ŷ-x̂) + a*log2(abs(1-2^((ŷ-x̂)/a))
 
 The last two terms are precomputed into a table lookup."""
-function createSubLookup(a::Int,n::Integer)
-    tab = Array{Int32,1}(undef,n)
+function createSubLookup(scale::Int)
+    tab = Array{Int32,1}(undef,max_table_size)
 
+    # set the first entry manually to avoid -Inf due to the log2(0)
     tab[1] = -logfixpoint16_max
 
-    for i in 1:n-1
-        tab[i+1] = -max(-Int32(round(-i+a*log2(abs(1-2^(i/a))))) -1,0)
+    for i in 1:max_table_size-1
+        tab[i+1] = -i + Int(round(scale*log2(abs(1-2^(i/scale)))))
     end
 
     return tab
 end
 
-const max_diff_resolvable = Int32(2440)     # table indices higher than that are 0
-const addTable = createAddLookup(fbit_scale,max_diff_resolvable)
-const subTable = createSubLookup(fbit_scale,max_diff_resolvable)
+# table indices higher than that are 0
+function find_max_diff_res(scale::Int)
+    i = 1
+    while (-i + round(scale*log2(1+2^(i/scale)))) > 0.0
+        i += 1
+    end
+    return Int32(i)
+end
+
+const max_diff_resolvable = Ref{Int32}(find_max_diff_res(scale[]))
+const max_table_size = find_max_diff_res(2^max_nfrac_supported)
+const addTable = createAddLookup(scale[])
+const subTable = createSubLookup(scale[])
 
 function Base.:(+)(x::LogFixPoint16,y::LogFixPoint16)
     isnan(x) | isnan(y) && return nan(LogFixPoint16)
+
+    # zero is an exceptional case and not reprsentable as (-1)^s * 2^x
+    iszero(x) && return y
+    iszero(y) && return x
 
     uix = reinterpret(UInt16,x)
     uiy = reinterpret(UInt16,y)
@@ -260,7 +303,7 @@ function Base.:(+)(x::LogFixPoint16,y::LogFixPoint16)
     diff = yval - xval     # diff >= 0
 
     # pull Gaussian logarithms from addTable
-    @inbounds increment = diff < max_diff_resolvable ?
+    @inbounds increment = diff < max_diff_resolvable[] ?
         (xsign == ysign ? addTable[diff+1] : subTable[diff+1]) : zero(Int32)
     val = yval + increment
 
@@ -278,13 +321,36 @@ function Base.:(+)(x::LogFixPoint16,y::LogFixPoint16)
     return reinterpret(LogFixPoint16,result)
 end
 
-function Base.:(-)(x::LogFixPoint16,y::LogFixPoint16)
-    return x + (-y)
+function diff_val(x::LogFixPoint16,y::LogFixPoint16)
+    isnan(x) | isnan(y) && return nan(LogFixPoint16)
+
+    uix = reinterpret(UInt16,x)
+    uiy = reinterpret(UInt16,y)
+
+    xsign = uix & 0x8000
+    ysign = uiy & 0x8000
+
+    xval = (uix & 0x7fff) % Int32
+    yval = (uiy & 0x7fff) % Int32
+
+    # y is always the larger value
+    # resulting sign is always that of y
+    # in a-a sign is 1, but case is caught in underflow: sign set to 0
+    xval,yval,xsign,ysign = xval > yval ? (yval,xval,ysign,xsign) : (xval,yval,xsign,ysign)
+    diff = yval - xval     # diff >= 0
 end
 
+"""Subtraction for LogFixPoint16 via sign switch of y as in x-y = x + (-y)."""
+Base.:(-)(x::LogFixPoint16,y::LogFixPoint16) = x + (-y)
+
+"""Rounding to integer via conversion to Float32."""
 Base.round(x::LogFixPoint16, r::RoundingMode{:Up}) = Int(ceil(Float32(x)))
 Base.round(x::LogFixPoint16, r::RoundingMode{:Down}) = Int(floor(Float32(x)))
 Base.round(x::LogFixPoint16, r::RoundingMode{:Nearest}) = Int(round(Float32(x)))
+
+for t in (Int8, Int16, Int32, Int64, Int128, UInt8, UInt16, UInt32, UInt64, UInt128)
+	@eval Base.promote_rule(::Type{LogFixPoint16}, ::Type{$t}) = LogFixPoint16
+end
 
 function Base.nextfloat(x::LogFixPoint16)
     isnan(x) && return nan(LogFixPoint16)
@@ -303,13 +369,6 @@ function Base.nextfloat(x::LogFixPoint16,n::Int)
     return x
 end
 
-function Base.prevfloat(x::LogFixPoint16,n::Int)
-    for i in 1:n
-        x = prevfloat(x)
-    end
-    return x
-end
-
 function Base.prevfloat(x::LogFixPoint16)
 	# -floatmax is 0xffff and would otherwise prevfloat to 0=0x0000
     isnan(x) | (x == -floatmax(LogFixPoint16)) && return nan(LogFixPoint16)
@@ -320,13 +379,20 @@ function Base.prevfloat(x::LogFixPoint16)
     return reinterpret(LogFixPoint16,ui - 0x0001)
 end
 
-# function Base.log2(x::LogFixPoint16)
-# 	signbit(x) | iszero(x) && return nan(LogFixPoint16)
-# 	ui =  reinterpret(UInt16,x) % Int
-# 	ui -= Int(bit15flip)
-# 	ui /= 2^8
-# 	return ui
-# end
+function Base.prevfloat(x::LogFixPoint16,n::Int)
+    for i in 1:n
+        x = prevfloat(x)
+    end
+    return x
+end
+
+function Base.log2(x::LogFixPoint16)
+	signbit(x) | iszero(x) && return nan(LogFixPoint16)
+	ui =  reinterpret(UInt16,x) % Int
+	ui -= Int(bit15flip)
+	ui /= scale
+	return LogFixPoint16(ui)
+end
 
 function Base.:(==)(x::LogFixPoint16,y::LogFixPoint16)
     isnan(x) | isnan(y) && return false
@@ -395,7 +461,7 @@ Base.bitstring(x::LogFixPoint16) = bitstring(reinterpret(UInt16,x))
 function Base.bitstring(x::LogFixPoint16,mode::Symbol)
     if mode == :split	# split into sign, integer, fraction
         s = bitstring(x)
-		return "$(s[1]) $(s[2:8]) $(s[9:end])"
+		return "$(s[1]) $(s[2:nint+1]) $(s[nint+2:end])"
     else
         return bitstring(x)
     end
