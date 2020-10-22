@@ -3,7 +3,7 @@
 
 # LogFixPoint16s.jl
 
-Exports LogFixPoint16 - a 16bit [logarithmic fixed-point number](https://en.wikipedia.org/wiki/Logarithmic_number_system) format with 1 sign bit, 7 signed integer bits, and 8 fraction bits.
+Exports LogFixPoint16 - a 16bit [logarithmic fixed-point number](https://en.wikipedia.org/wiki/Logarithmic_number_system) format with 1 sign bit, 6 signed integer bits, and 9 fraction bits.
 
 ### Example use
 
@@ -11,19 +11,31 @@ Exports LogFixPoint16 - a 16bit [logarithmic fixed-point number](https://en.wiki
 julia> using LogFixPoint16s
 julia> v = LogFixPoint16.(rand(Float32,5))
 5-element Array{LogFixPoint16,1}:
- LogFixPoint16(0.04741747)
- LogFixPoint16(0.82287776)
- LogFixPoint16(0.989228)
- LogFixPoint16(0.25409457)
- LogFixPoint16(0.37525353)
+ LogFixPoint16(0.8925083)
+ LogFixPoint16(0.4919428)
+ LogFixPoint16(0.69759846)
+ LogFixPoint16(0.25616693)
+ LogFixPoint16(0.57248604)
 
 julia> sum(v)
-LogFixPoint16(2.4837155)
+LogFixPoint16(2.9139352)
 ```
 
 ### Features
 
-Exports `LogFixPoint16, iszero, isnan, signbit, zero, nan, floatmin, floatmax, one, -, inv, *, / , +, -, sqrt, nextfloat, prevfloat, ==, <=, >, >=, show, bitstring` as well as conversions to and from `Float64, Float32, Float16, Int`. 
+Exports `LogFixPoint16, iszero, isnan, signbit, zero, nan, floatmin, floatmax, one, -, inv, *, / , +, -, sqrt, nextfloat, prevfloat, ==, <=, >, >=, show, bitstring` as well as conversions to and from `Float64, Float32, Float16, Int`.
+
+Although `LogFixPoint16` is always a 16-bit format, the number of fraction bits (in exchange for integer bits) can be adjusted between 7 and 11. For 7 fraction bits, `LogFixPoint16` has a similar dynamic range-precision trade-off as `BFloat16`; 10 fraction bits are similar to `Float16`.
+
+```
+julia> LogFixPoint16s.set_nfrac(7)
+┌ Warning: LogFixPoint16 was changed to 8 integer and 7 fraction bits.
+└ @ Main.LogFixPoint16s ~/git/LogFixPoint16s.jl/src/LogFixPoint16s.jl:24
+```
+
+### Bias
+
+Currently, `LogFixPoint16` is slightly biased away from zero, but positive/negatie bias-free.
 
 ### Theory
 
@@ -47,10 +59,10 @@ The only exceptions are the bitpatterns `0x0000` (zero) and `0x8000` (Not-a-Real
 
 ```julia
 julia> floatmin(LogFixPoint16)
-LogFixPoint16(5.435709e-20)
+LogFixPoint16(2.3314606e-10)
 
 julia> floatmax(LogFixPoint16)
-LogFixPoint16(1.8396865e19)
+LogFixPoint16(4.2891566e9)
 ```
  
 ### Decimal precision
@@ -59,36 +71,37 @@ Logarithmic fixed-point numbers are placed equi-distantly on a log-scale. Conseq
 
 As a consequence there is no rounding error for logarithmic fixed-point numbers in multiplication, division or power/root - similarly as there is no rounding error for fixed-point numbers for addition and subtraction.
 
-![decimal precision](figs/decimal_precision.png?raw=true "decimal precision")
+![decimal precision](figs/decimal_precision2.png?raw=true "decimal precision")
 
 ### Benchmarks
 
-`LogFixPoint16` is considerably faster than `Float16` for addition (x1.5) and multiplication (x20)
+`LogFixPoint16` is considerably faster than `Float16` for addition (x5) and multiplication (x33)
 
 ```julia
 julia> using LogFixPoint16s, BenchmarkTools
 julia> A = rand(Float32,1000,1000);
-julia> B = Float16.(A);
-julia> C = LogFixPoint16.(A);
-julia> @btime +($A,$A);       # Float32
-  478.892 μs (2 allocations: 3.81 MiB)
+julia> B = rand(Float32,1000,1000);
+julia> C,D = Float16.(A),Float16.(B);
+julia> E,F = LogFixPoint16.(A),LogFixPoint16.(B);
 
-julia> @btime +($B,$B);       # Float16
-  9.966 ms (2 allocations: 1.91 MiB)
+julia> @btime +($A,$B);       # Float32
+  442.167 μs (2 allocations: 3.81 MiB)
 
-julia> @btime +($C,$C);       # LogFixPoint16
-  6.127 ms (2 allocations: 1.91 MiB)
+julia> @btime +($C,$D);       # Float16
+  17.215 ms (2 allocations: 1.91 MiB)
+
+julia> @btime +($E,$F);       # LogFixPoint16
+  3.654 ms (2 allocations: 1.91 MiB)
   
-julia> @btime .*($A,$A);      # Float32
-  390.930 μs (2 allocations: 3.81 MiB)
+julia> @btime .*($A,$B);      # Float32
+  457.807 μs (2 allocations: 3.81 MiB)
 
-julia> @btime .*($B,$B);      # Float16
-  18.753 ms (2 allocations: 1.91 MiB)
-
-julia> @btime .*($C,$C);      # LogFixPoint16
-  801.077 μs (2 allocations: 1.91 MiB)
+julia> @btime .*($C,$D);      # Float16
+  17.760 ms (2 allocations: 1.91 MiB)
+  
+julia> @btime .*($E,$F);      # LogFixPoint16
+  533.345 μs (2 allocations: 1.91 MiB)
 ```
-
 
 ### Installation
 
