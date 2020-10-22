@@ -32,8 +32,8 @@ nfrac = 6
 q7p6 = collect((-2.0^(nint-1)):(2.0^-nfrac):(2.0^(nint-1)-1-2.0^-nfrac))
 approx16 = 2 .^ q7p6
 
-nint = 7
-nfrac = 8
+nint = 5
+nfrac = 10
 q7p8 = collect((-2.0^(nint-1)):(2.0^-nfrac):(2.0^(nint-1)-2.0^-nfrac))
 logfixp16 = 2 .^ q7p8
 
@@ -87,5 +87,5 @@ ax1.text(3e10,3.4,"LogFixPoint16",color="C6",rotation=0)
 ax1.set_title("Decimal precision",loc="left")
 
 tight_layout()
-savefig("figs/decimal_precision.png",dpi=100)
+savefig("/Users/milan/git/LogFixPoint16s.jl/figs/decimal_precision3.png",dpi=100)
 close(fig)
