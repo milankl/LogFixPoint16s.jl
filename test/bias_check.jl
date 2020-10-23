@@ -1,4 +1,6 @@
 using Statistics
+using PyPlot
+pygui(true)
 
 function biased(x::Array{Float64,1})
     N = length(x)
