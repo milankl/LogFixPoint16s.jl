@@ -54,13 +54,32 @@ const logfixpoint16_max = Int32(2^15)
 const bit15flip = Int32(2^14)    # flip the meaning of the sign bit of integers
 const bit14flip = UInt16(2^13)
 
+"""Constant to convert from round-to-nearest in log to linear space.
+
+Let
+    1 = s*log2(f1)
+    1.5 = s*log2(f2)
+    2 = s*log2(f3)
+
+With some scale s. Now f2 is not the arithmetic mean of f1,f3. Let f2* be that mean
+
+    f2* = 2^(1/s-1) + s^(2/s-1)
+
+Then we find a constant c_b to be added before rounding by
+
+    1.5 = c_b + 2*log2(f2*)
+    => c_b = 1.5 - s*log2(f2*)"""
+const c_b = Ref{Float32}(Float32(1.5-scale[]*log2(2^(1/scale[]-1) + 2^(2/scale[]-1))))
+
+"""Convert a Float32 to LogFixPoint16 via the base-2 logarithm and rounding.
+Round to nearest is applied in lin-space due to the addition of c_b."""
 function LogFixPoint16(f::Float32)
     iszero(f) && return zero(LogFixPoint16)
     ~isfinite(f) && return nan(LogFixPoint16)
 
     # scale_over_logof2 = scale/log(2) to scale by nfrac fraction bits
     # use log instead of log2 as it's faster and include 1/log(2) in the constant
-    val = Int32(round(scale_over_logof2[]*log(abs(f)))) + bit15flip
+    val = Int32(round(c_b[] + scale_over_logof2[]*log(abs(f)))) + bit15flip
     sign = ((reinterpret(UInt32,f) & 0x8000_0000) >> 16) % UInt16
 
     # check for over or underflow
@@ -78,18 +97,19 @@ function LogFixPoint16(f::Float32)
     return reinterpret(LogFixPoint16,result)
 end
 
+"""Pre-calcualte look-up table for conversion from LogFixPoint16 to Float32."""
 function createF32LookupTable(nint::Int,nfrac::Int)
 
-    table = Array{UInt32,1}(undef,2^(nint+nfrac))
+    N = 2^(nint+nfrac)      # length of the table
+    table = Array{UInt32,1}(undef,N)
+    s = 2^nfrac             # scale
+    bias = 2^(nint+nfrac-1) # exponent bias (=bit15flip)
 
-    c = Float64(2^nfrac)        # use f32 to avoid a promotion to f64 in the loop
-    bias = 2^(nint+nfrac-1)	    # exponent bias for signed integers
-
-    for i in 1:2^(nint+nfrac)
+    for i in 1:N
         # convert index to signed integer, with signbit flipped
         si = i-bias
         # store float32s as UInt32 for bitwise operations
-        table[i] = reinterpret(UInt32,Float32(2.0 ^ (si/c)))
+        table[i] = reinterpret(UInt32,Float32(2.0 ^ (si/s)))
     end
 
     return table
@@ -97,6 +117,8 @@ end
 
 const f32lookup = createF32LookupTable(nint[],nfrac[])
 
+"""Conversion function from LogFixPoint16 to Float32 via table lookup
+after branching off the special cases 0,NaR."""
 function Float32(x::LogFixPoint16)
     iszero(x) && return 0f0
     isnan(x) && return NaN32
@@ -108,10 +130,12 @@ function Float32(x::LogFixPoint16)
     # sign = either 0x8000_0000 or 0x0000_0000
     sign = ((ui & 0x8000) % UInt32) << 16
 
+    # combine sign and table lookup
     @inbounds f = sign | f32lookup[val]
     return reinterpret(Float32,f)
 end
 
+# conversion between LogFixPoint16 and various floats
 Float64(x::LogFixPoint16) = Float64(Float32(x))
 Float16(x::LogFixPoint16) = Float16(Float32(x))
 LogFixPoint16(x::Float64) = LogFixPoint16(Float32(x))
@@ -235,7 +259,7 @@ function createAddLookup(scale::Int)
     tab = Array{Int32,1}(undef,max_table_size)
 
     for i in 0:max_table_size-1
-        tab[i+1] = -i + Int(round(scale*log2(1+2^(i/scale))))
+        tab[i+1] = -i + Int(round(c_b[] + scale*log2(1+2^(i/scale))))
     end
 
     return tab
@@ -260,7 +284,7 @@ function createSubLookup(scale::Int)
     tab[1] = -logfixpoint16_max
 
     for i in 1:max_table_size-1
-        tab[i+1] = -i + Int(round(scale*log2(abs(1-2^(i/scale)))))
+        tab[i+1] = -i + Int(round(c_b[] + scale*log2(abs(1-2^(i/scale)))))
     end
 
     return tab
@@ -269,7 +293,7 @@ end
 # table indices higher than that are 0
 function find_max_diff_res(scale::Int)
     i = 1
-    while (-i + round(scale*log2(1+2^(i/scale)))) > 0.0
+    while (-i + round(c_b[] + scale*log2(1+2^(i/scale)))) > 0.0
         i += 1
     end
     return Int32(i)

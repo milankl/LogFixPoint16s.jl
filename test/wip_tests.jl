@@ -1,4 +1,6 @@
-for d in 0:max_diff_resolvable+100
+using Printf
+
+for d in 0:max_diff_resolvable[]+100
     tests_failed = 0
     mean_diff = 0
     max_diff = 0
@@ -29,9 +31,9 @@ for d in 0:max_diff_resolvable+100
             dir = di[2]/sum(di)
             mean_di += dir
             max_di = max(max_di,dir)
-            if dir > 0.7
-                println([lf1,lf2])
-            end
+            # if dir > 0.7
+            #     println([lf1,lf2])
+            # end
         end
     end
     if tests_failed > 0
