@@ -50,7 +50,13 @@ const scale = Ref{Int}(2^nfrac[])
 const scale_over_logof2 = Ref{Float32}(scale[]/log(2f0))
 const max_nfrac_supported = 11
 
-const logfixpoint16_max = Int32(2^15)
+""" 32-bit value of floatmax/min are derived from
+
+    Int32(round(scale[]*(-(2^i-2^-j)-1))) + bit15flip
+
+where i=nint-1, j=nfrac."""
+const logfixpoint16_max = Int32(2^15-1)             # val of floatmax
+const logfixpoint16_halfmin = Int32(-2^nfrac[]+1)   # val of half floatmin
 const bit15flip = Int32(2^14)    # flip the meaning of the sign bit of integers
 const bit14flip = UInt16(2^13)
 
@@ -82,19 +88,25 @@ function LogFixPoint16(f::Float32)
     val = Int32(round(c_b[] + scale_over_logof2[]*log(abs(f)))) + bit15flip
     sign = ((reinterpret(UInt32,f) & 0x8000_0000) >> 16) % UInt16
 
-    # check for over or underflow
-    underflow = val < zero(Int32)
+    sign,val = under_overflow_check(sign,val)
+    result = sign | (val % UInt16)
+    return reinterpret(LogFixPoint16,result)
+end
+
+"""Check for under or overflow:
+
+    - Any result beyond floatmax returns floatmax. (No-overflow rounding mode)
+    - Any result smaller than floatmin/2 returns 0, any result between
+        floatmin and floatmin/2 returns floatmin."""
+function under_overflow_check(sign::UInt16,val::Int32)
+
+    underflow = val < logfixpoint16_halfmin
     overflow = val > logfixpoint16_max
 
-    # overflow returns 0x8000 (NaR) underflow returns 0x0000 (zero)
-    # both have val = 0
-    val = underflow | overflow ? zero(Int32) : val
-    sign = underflow ? 0x0000 : sign
-    sign = overflow ? 0x8000 : sign
+    val, sign = underflow ? (zero(Int32), 0x0000) : (max(val,one(Int32)), sign)
+    val = overflow ? logfixpoint16_max : val
 
-    result = sign | (val % UInt16)
-
-    return reinterpret(LogFixPoint16,result)
+    return sign,val
 end
 
 """Pre-calcualte look-up table for conversion from LogFixPoint16 to Float32."""
@@ -171,14 +183,7 @@ function Base.:(*)(x::LogFixPoint16,y::LogFixPoint16)
     val = xval + yval - bit15flip
 
     # check for over or underflow
-    underflow = val < zero(Int32)
-    overflow = val > logfixpoint16_max
-
-    # overflow returns 0x8000 (NaR) underflow returns 0x0000 (zero)
-    # both have val = 0
-    val = underflow | overflow ? zero(Int32) : val
-    sign = underflow ? 0x0000 : sign
-    sign = overflow ? 0x8000 : sign
+    sign,val = under_overflow_check(sign,val)
 
     # merge sign and exponent back together
     result = sign | (val % UInt16)
@@ -212,15 +217,7 @@ function Base.:(/)(x::LogFixPoint16,y::LogFixPoint16)
     # biased with (a single) + bit15flip
     val = xval - yval + bit15flip
 
-    # check for over or underflow
-    underflow = val < zero(Int32)
-    overflow = val > logfixpoint16_max
-
-    # overflow returns 0x8000 (NaR) underflow returns 0x0000 (zero)
-    # both have val = 0
-    val = underflow | overflow ? zero(Int32) : val
-    sign = underflow ? 0x0000 : sign
-    sign = overflow ? 0x8000 : sign
+    sign,val = under_overflow_check(sign,val)
 
     # merge sign and exponent val
     result = sign | (val % UInt16)
@@ -281,7 +278,7 @@ function createSubLookup(scale::Int)
     tab = Array{Int32,1}(undef,max_table_size)
 
     # set the first entry manually to avoid -Inf due to the log2(0)
-    tab[1] = -logfixpoint16_max
+    tab[1] = -logfixpoint16_max-1
 
     for i in 1:max_table_size-1
         tab[i+1] = -i + Int(round(c_b[] + scale*log2(abs(1-2^(i/scale)))))
@@ -326,22 +323,16 @@ function Base.:(+)(x::LogFixPoint16,y::LogFixPoint16)
     xval,yval,xsign,ysign = xval > yval ? (yval,xval,ysign,xsign) : (xval,yval,xsign,ysign)
     diff = yval - xval     # diff >= 0
 
-    # pull Gaussian logarithms from addTable
+    # pull Gaussian logarithms from addTable, subTable
+    # update yval with the increment
     @inbounds increment = diff < max_diff_resolvable[] ?
         (xsign == ysign ? addTable[diff+1] : subTable[diff+1]) : zero(Int32)
-    val = yval + increment
+    yval += increment
 
     # check for over or underflow
-    underflow = val < zero(Int32)
-    overflow = val > logfixpoint16_max
+    ysign,yval = under_overflow_check(ysign,yval)
 
-    # overflow returns 0x8000 (NaR) underflow returns 0x0000 (zero)
-    # both have val = 0
-    val = underflow | overflow ? zero(Int32) : val
-    ysign = underflow ? 0x0000 : ysign
-    ysign = overflow ? 0x8000 : ysign
-
-    result = ysign | (val % UInt16)
+    result = ysign | (yval % UInt16)
     return reinterpret(LogFixPoint16,result)
 end
 
