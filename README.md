@@ -105,6 +105,9 @@ julia> @btime .*($E,$F);      # LogFixPoint16
 
 ### Installation
 
+`LogFixPoint16s.jl` is registered in the Julia Registry, so simply do
+
 ```julia
-julia> ] add https://github.com/milankl/LogFixPoint16s.jl
+julia> ] add LogFixPoint16s
 ```
+where `]` opens the package manager.
