@@ -155,6 +155,11 @@ end
     end
 end
 
+@testset "max diff resolvable" begin
+    @test addTable[max_diff_resolvable[]] == 1
+    @test addTable[max_diff_resolvable[]+1] == 0
+end
+
 @testset "subtraction all" begin
     for _ in 1:100000
         lf1ui,lf2ui = rand(UInt16,2)
