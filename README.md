@@ -35,7 +35,7 @@ julia> LogFixPoint16s.set_nfrac(7)
 
 ### Bias
 
-Currently, `LogFixPoint16` is slightly biased away from zero, but positive/negatie bias-free.
+Currently, `LogFixPoint16` is slightly biased away from zero, but is positive/negative bias-free.
 
 ### Theory
 
@@ -71,7 +71,9 @@ Logarithmic fixed-point numbers are placed equi-distantly on a log-scale. Conseq
 
 As a consequence there is no rounding error for logarithmic fixed-point numbers in multiplication, division or power/root - similarly as there is no rounding error for fixed-point numbers for addition and subtraction.
 
-![decimal precision](figs/decimal_precision2.png?raw=true "decimal precision")
+![decimal precision](figs/decimal_precision.png?raw=true "decimal precision")
+
+LogFixPoint16 with 10 fraction bits have a similar decimal precision / dynamic range trade-off as Float16, and 7 fraction bits are similar to BFloat16. However, these decimal precision only apply to additions, as multiplications are rounding error-free. `LogFixPoint16s.jl` also allows additionally for 8,9 or 11 fraction bits, which are not shown.
 
 ### Benchmarks
 
