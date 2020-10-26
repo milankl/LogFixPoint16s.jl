@@ -13,6 +13,7 @@ module LogFixPoint16s
         nint[] = 15-nfrac[]
         scale[] = 2^nfrac[]
         scale_over_logof2[] = scale[]/log(2f0)
+        max_diff_resolvable[] = find_max_diff_res(scale[])
 
         # change Float32 lookup table for conversion LogFixPoint16 -> Float32
         f32lookup[:] = createF32LookupTable(nint[],nfrac[])

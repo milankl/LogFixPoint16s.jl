@@ -101,7 +101,21 @@ end
         lf2 = reinterpret(LogFixPoint16,lf2)
 
         result = LogFixPoint16(Float32(lf1)*Float32(lf2))
-        @test reinterpret(UInt16,result) == reinterpret(UInt16,lf1*lf2)
+        result2 = lf1*lf2
+
+        # result might yield NaN in Float32 arithmetic (overflow)
+        # but in LogFixPoint16-arithmetic yield ±floatmax (no-overflow)
+        # in case Float32 yields NaN test that LogFixPoint16 is either
+        # NaR or ±floatmax
+        if isnan(result)
+            if isnan(result2)
+                @test true
+            else
+                @test (result2 == floatmax(LogFixPoint16)) || (result2 == -floatmax(LogFixPoint16))
+            end
+        else
+            @test result == result2
+        end
     end
 end
 
@@ -121,7 +135,21 @@ end
         lf2 = reinterpret(LogFixPoint16,lf2)
 
         result = LogFixPoint16(Float32(lf1)/Float32(lf2))
-        @test reinterpret(UInt16,result) == reinterpret(UInt16,lf1/lf2)
+        result2 = lf1/lf2
+
+        # result might yield NaN in Float32 arithmetic (overflow)
+        # but in LogFixPoint16-arithmetic yield ±floatmax (no-overflow)
+        # in case Float32 yields NaN test that LogFixPoint16 is either
+        # NaR or ±floatmax
+        if isnan(result)
+            if isnan(result2)
+                @test true
+            else
+                @test (result2 == floatmax(LogFixPoint16)) || (result2 == -floatmax(LogFixPoint16))
+            end
+        else
+            @test result == result2
+        end
     end
 end
 
@@ -153,6 +181,11 @@ end
         result = LogFixPoint16(Float32(lf1)+Float32(lf2))
         @test_skip reinterpret(UInt16,result) == reinterpret(UInt16,lf1+lf2)
     end
+end
+
+@testset "max diff resolvable" begin
+    @test LogFixPoint16s.addTable[LogFixPoint16s.max_diff_resolvable[]] == 1
+    @test LogFixPoint16s.addTable[LogFixPoint16s.max_diff_resolvable[]+1] == 0
 end
 
 @testset "subtraction all" begin

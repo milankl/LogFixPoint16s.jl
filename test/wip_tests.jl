@@ -67,6 +67,53 @@ end
 # d=5391, Pass: 23039, Fail:  4338, Max diff: 1
 # d=5392, Pass: 27367, Fail:     9, Max diff: 1
 
+for d in 0:max_diff_resolvable[]+100
+    tests_failed = 0
+    mean_diff = 0
+    max_diff = 0
+    mean_di = 0f0
+    max_di = 0f0
+    for lf1ui in 0x0000:Int16(2^15-d-1)
+        lf2ui = Int16(lf1ui + d)
+
+        lf1 = reinterpret(LogFixPoint16,lf1ui)
+        lf2 = reinterpret(LogFixPoint16,lf2ui)
+
+        r = Float32(lf2)-Float32(lf1)
+        result = LogFixPoint16(r)
+        result2 = lf2-lf1
+
+        ui1 = reinterpret(UInt16,result)
+        ui2 = reinterpret(UInt16,result2)
+
+        # filter out nans
+        failed = (ui1 == 0x8000 || ui2 == 0x8000) ? false : ui1 != ui2
+        tests_failed += failed
+
+        if failed
+            mean_diff += Int(ui1)-Int(ui2)
+            max_diff = max(abs(Int(ui1)-Int(ui2)),max_diff)
+            di = Float32.([prevfloat(result2),result2,nextfloat(result2)]) .- r
+            di = sort(abs.(di))[1:2]
+            dir = di[2]/sum(di)
+            mean_di += dir
+            max_di = max(max_di,dir)
+            # if dir > 0.7
+            #     println([lf1,lf2])
+            # end
+        end
+    end
+    if tests_failed > 0
+        ds = @sprintf("%4d",d)
+        ps = @sprintf("%5d",2^15-d-tests_failed)
+        fs = @sprintf("%5d",tests_failed)
+        ms = @sprintf("%2d",max_diff)
+        dis = @sprintf("%.6f",mean_di/tests_failed)
+        mdis = @sprintf("%.6f",max_di)
+        println("d=$ds, Pass: $ps, Fail: $fs, Diff: $ms, Mean dist: $dis, Max dist: $mdis")
+    end
+end
+
 er = fill(0f0,11760)
 for d in [2535]
     i = 1
