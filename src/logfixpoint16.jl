@@ -297,7 +297,7 @@ function find_max_diff_res(scale::Int)
 end
 
 const max_diff_resolvable = Ref{Int32}(find_max_diff_res(scale[]))
-const max_table_size = find_max_diff_res(2^max_nfrac_supported)
+const max_table_size = find_max_diff_res(2^max_nfrac_supported)+1
 const addTable = createAddLookup(scale[])
 const subTable = createSubLookup(scale[])
 
