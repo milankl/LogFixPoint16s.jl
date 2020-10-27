@@ -69,7 +69,7 @@ Let
 
 With some scale s. Now f2 is not the arithmetic mean of f1,f3. Let f2* be that mean
 
-    f2* = 2^(1/s-1) + s^(2/s-1)
+    f2* = 2^(1/s-1) + 2^(2/s-1)
 
 Then we find a constant c_b to be added before rounding by
 
