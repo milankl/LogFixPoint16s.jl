@@ -247,3 +247,11 @@ end
     @test nextfloat(nextfloat(c)) == nextfloat(c,2)
     @test prevfloat(prevfloat(c)) == prevfloat(c,2)
 end
+
+@testset "bitstring" begin
+    lf = one(LogFixPoint16)
+    ni = LogFixPoint16s.nint[]
+    nf = LogFixPoint16s.nfrac[]
+    @test bitstring(lf) == "0100000000000000"
+    @test bitstring(lf,:split) == "0 1"*repeat("0",ni-1)*" "*repeat("0",nf)
+end
