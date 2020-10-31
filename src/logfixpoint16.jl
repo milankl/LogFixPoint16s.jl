@@ -476,7 +476,7 @@ Base.bitstring(x::LogFixPoint16) = bitstring(reinterpret(UInt16,x))
 function Base.bitstring(x::LogFixPoint16,mode::Symbol)
     if mode == :split	# split into sign, integer, fraction
         s = bitstring(x)
-		return "$(s[1]) $(s[2:nint+1]) $(s[nint+2:end])"
+		return "$(s[1]) $(s[2:nint[]+1]) $(s[nint[]+2:end])"
     else
         return bitstring(x)
     end
