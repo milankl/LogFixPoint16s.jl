@@ -92,10 +92,10 @@ And then benchmark via `@btime +($A,$B):` and so on. Then relative to `Float64` 
 | ------------------- | ------- | ------- | -------- | ------- | ------------- |
 | Addition (+)        |    1    |   0.38  |   0.48   | 14.3    | 3.15          |
 | Multiplication (.*) |    0.94 |   0.38  |   0.48   | 14.9    | 0.45          |
-| Power (.^2)         |    0.61 |   0.26  |   1.8    | 10.7    | 1.74          | 
+| Power (.^2)         |    0.61 |   0.26  |   1.8    | 10.7    | 0.66*         | 
 | Square-root (sqrt.) |    1.49 |   0.79  |   1.55   | 13.2    | 0.13          |
 
-On an Intel i5 (Ice Lake).
+On an Intel i5 (Ice Lake). (*) via `power2`.
 
 ### Installation
 
