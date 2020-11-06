@@ -1,6 +1,6 @@
 module LogFixPoint16s
 
-    export LogFixPoint16, nan
+    export LogFixPoint16, nan, power2
 
     include("logfixpoint16.jl")
 
