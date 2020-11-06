@@ -259,7 +259,7 @@ end
 @testset "power2" begin
     @test power2(LogFixPoint16(2)) == 2*LogFixPoint16(2)
     @test power2(zero(LogFixPoint16)) == zero(LogFixPoint16)
-    @test power2(nan(LogFixPoint16)) == nan(LogFixPoint16)
+    @test isequal(power2(nan(LogFixPoint16)),nan(LogFixPoint16))
     @test power2(-one(LogFixPoint16)) == one(LogFixPoint16)
     @test power2(LogFixPoint16(0.5)) == LogFixPoint16(0.25)
 end
