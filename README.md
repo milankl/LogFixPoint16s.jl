@@ -77,7 +77,7 @@ LogFixPoint16 with 10 fraction bits have a similar decimal precision / dynamic r
 
 ### Benchmarks
 
-`LogFixPoint16` is considerably faster than `Float16` for addition (x5) and multiplication (x33)
+Although `LogFixPoint16s` are software-emulated, they are considerably fast. Define some matrices
 
 ```julia
 julia> using LogFixPoint16s, BenchmarkTools
@@ -85,25 +85,17 @@ julia> A = rand(Float32,1000,1000);
 julia> B = rand(Float32,1000,1000);
 julia> C,D = Float16.(A),Float16.(B);
 julia> E,F = LogFixPoint16.(A),LogFixPoint16.(B);
-
-julia> @btime +($A,$B);       # Float32
-  442.167 μs (2 allocations: 3.81 MiB)
-
-julia> @btime +($C,$D);       # Float16
-  17.215 ms (2 allocations: 1.91 MiB)
-
-julia> @btime +($E,$F);       # LogFixPoint16
-  3.654 ms (2 allocations: 1.91 MiB)
-  
-julia> @btime .*($A,$B);      # Float32
-  457.807 μs (2 allocations: 3.81 MiB)
-
-julia> @btime .*($C,$D);      # Float16
-  17.760 ms (2 allocations: 1.91 MiB)
-  
-julia> @btime .*($E,$F);      # LogFixPoint16
-  533.345 μs (2 allocations: 1.91 MiB)
 ```
+And then benchmark via `@btime +($A,$B):` and so on. Then relative to `Float64` performance for addition:
+
+| Operation           | Float64 | Float32 | BFloat16 | Float16 | LogFixPoint16 |
+| ------------------- | ------- | ------- | -------- | ------- | ------------- |
+| Addition (+)        |    1    |   0.38  |   0.48   | 14.3    | 3.15          |
+| Multiplication (.*) |    0.94 |   0.38  |   0.48   | 14.9    | 0.45          |
+| Power (.^2)         |    0.61 |   0.26  |   1.8    | 10.7    | 1.74          | 
+| Square-root (sqrt.) |    1.49 |   0.79  |   1.55   | 13.2    | 0.13          |
+
+On an Intel i5 (Ice Lake).
 
 ### Installation
 
