@@ -59,6 +59,7 @@ const logfixpoint16_max = Int32(2^15-1)             # val of floatmax
 const logfixpoint16_halfmin = Int32(-2^nfrac[]+1)   # val of half floatmin
 const bit15flip = Int32(2^14)    # flip the meaning of the sign bit of integers
 const bit14flip = UInt16(2^13)
+const uintbit15flip = UInt16(2^14)    # used for power2
 
 """Constant to convert from round-to-nearest in log to linear space.
 
@@ -232,6 +233,14 @@ function Base.sqrt(x::LogFixPoint16)
     #TODO is this correct rounding?
     uix = (uix >> 1) + bit14flip
     return reinterpret(LogFixPoint16,uix)
+end
+
+function power2(x::LogFixPoint16)
+    iszero(x) && return zero(LogFixPoint16)
+    isnan(x) && return nan(LogFixPoint16)
+    uix = reinterpret(UInt16,x)
+    uix = (uix << 1) + uintbit15flip
+    return reinterpret(LogFixPoint16,uix & 0x7fff)
 end
 
 """ Precomputes the Gaussian Logarithm as a table lookup for addition. Let

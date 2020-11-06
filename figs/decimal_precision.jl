@@ -2,7 +2,6 @@ using PyPlot, StatsBase, Statistics
 
 include("representable_numbers.jl")
 
-##
 float8 = representable_floats(8,3)
 float16 = representable_floats(16,5)
 bfloat16 = representable_floats(16,8)
@@ -38,6 +37,15 @@ lfxp_f16_wda = vcat(decprec(lfxp_f16[1]/2,lfxp_f16[1]),lfxp_f16_wda,0)
 ioff()
 fig,ax1 = subplots(1,1,figsize=(7,3))
 
+# dashed lines for reprsentable numbers
+ax1.fill_between(i_am,-0.1,i_wda,edgecolor="C0",facecolor="none",linestyle="--")
+ax1.plot(ones(2)*float16[1],[0,.5],"k",ls="--")
+ax1.plot(ones(2)*float16[end],[0,4],"k",ls="--",lw=2)
+ax1.plot(ones(2)*float8[1],[0,.5],"#D0D020",ls="--")
+ax1.plot(ones(2)*float8[end],[0,2],"#D0D020",ls="--")
+ax1.plot(ones(2)*lfxp_f16[1],[0,3.8],"C6",ls="--")
+ax1.plot(ones(2)*lfxp_f16[end],[0,4],"C6",ls="--")
+
 # floats and integers
 ax1.plot(f_am,f_wda,"k",lw=2)
 ax1.plot(bf_am,bf_wda,"0.7",lw=1.4)
@@ -47,13 +55,6 @@ ax1.plot(i_am,i_wda,"C0",lw=2)
 # log fix points
 ax1.plot(lfxp_bf16_am,lfxp_bf16_wda,"C5",lw=2)
 ax1.plot(lfxp_f16_am,lfxp_f16_wda,"C6",lw=2)
-
-# dashed lines for reprsentable numbers
-ax1.fill_between(f_am,-0.1,f_wda,edgecolor="k",facecolor="none",linestyle="--",lw=2)
-ax1.fill_between(i_am,-0.1,i_wda,edgecolor="C0",facecolor="none",linestyle="--")
-ax1.fill_between(f8_am,-0.1,f8_wda,edgecolor="#D0D020",facecolor="none",linestyle="--",zorder=10)
-ax1.fill_between(lfxp_bf16_am,-0.1,lfxp_bf16_wda,edgecolor="C5",facecolor="none",linestyle="--")
-ax1.fill_between(lfxp_f16_am[1:end-1],-0.1,lfxp_f16_wda[1:end-1],edgecolor="C6",facecolor="none",linestyle="--")
 
 x0,x1 = 1e-16,1e16
 
