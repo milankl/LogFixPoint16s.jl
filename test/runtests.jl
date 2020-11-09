@@ -16,3 +16,9 @@ include("logfixpoint16.jl")
 
 LogFixPoint16s.set_nfrac(11)
 include("logfixpoint16.jl")
+
+# check changing rounding mode
+LogFixPoint16s.set_nfrac(9)
+LogFixPoint16s.set_rounding_mode(:log)
+LogFixPoint16s.set_rounding_mode(:lin)
+include("logfixpoint16.jl")
