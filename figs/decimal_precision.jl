@@ -70,8 +70,8 @@ ax1.text(5e-7,4.1,"Float16",color="k")
 ax1.text(1e-15,3.2,"BFloat16",color="0.3")
 ax1.text(6e4,5,"Int16",color="C0")
 
-ax1.text(2e5,3.7,"LogFixPoint16,10",color="C6",rotation=0)
-ax1.text(1e10,3.2,"LogFixPoint16,7",color="C5",rotation=0)
+ax1.text(2e5,3.7,"LogFixPoint16",color="C6",rotation=0)
+ax1.text(1e10,3.2,"BLogFixPoint16",color="C5",rotation=0)
 
 ax1.set_title("Decimal precision",loc="left")
 
