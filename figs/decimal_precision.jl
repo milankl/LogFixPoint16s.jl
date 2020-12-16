@@ -41,20 +41,20 @@ fig,ax1 = subplots(1,1,figsize=(7,3))
 ax1.fill_between(i_am,-0.1,i_wda,edgecolor="C0",facecolor="none",linestyle="--")
 ax1.plot(ones(2)*float16[1],[0,.5],"k",ls="--")
 ax1.plot(ones(2)*float16[end],[0,4],"k",ls="--",lw=2)
-ax1.plot(ones(2)*float8[1],[0,.5],"#D0D020",ls="--")
-ax1.plot(ones(2)*float8[end],[0,2],"#D0D020",ls="--")
-ax1.plot(ones(2)*lfxp_f16[1],[0,3.8],"C6",ls="--")
-ax1.plot(ones(2)*lfxp_f16[end],[0,4],"C6",ls="--")
+ax1.plot(ones(2)*float8[1],[0,.5],"C2",ls="--")
+ax1.plot(ones(2)*float8[end],[0,2],"C2",ls="--")
+ax1.plot(ones(2)*lfxp_f16[1],[0,3.8],"C1",ls="--")
+ax1.plot(ones(2)*lfxp_f16[end],[0,4],"C1",ls="--")
 
 # floats and integers
 ax1.plot(f_am,f_wda,"k",lw=2)
-ax1.plot(bf_am,bf_wda,"0.7",lw=1.4)
-ax1.plot(f8_am,f8_wda,"#D0D020",lw=1.3)
+ax1.plot(bf_am,bf_wda,"grey",lw=1.4)
+ax1.plot(f8_am,f8_wda,"C2",lw=1.3)
 ax1.plot(i_am,i_wda,"C0",lw=2)
 
 # log fix points
-ax1.plot(lfxp_bf16_am,lfxp_bf16_wda,"C5",lw=2)
-ax1.plot(lfxp_f16_am,lfxp_f16_wda,"C6",lw=2)
+ax1.plot(lfxp_bf16_am,lfxp_bf16_wda,"C3",lw=2)
+ax1.plot(lfxp_f16_am,lfxp_f16_wda,"C1",lw=2)
 
 x0,x1 = 1e-16,1e16
 
@@ -65,13 +65,13 @@ ax1.set_ylim(0,6)
 ax1.set_xlabel("value")
 ax1.set_ylabel("decimal places")
 
-ax1.text(6e-3,1,"Float8",color="#D0D020",rotation=64.5,va="bottom")
+ax1.text(6e-3,1,"Float8",color="C2",rotation=64.5,va="bottom")
 ax1.text(5e-7,4.1,"Float16",color="k")
-ax1.text(1e-15,3.2,"BFloat16",color="0.3")
+ax1.text(1e-15,3.2,"BFloat16",color="grey")
 ax1.text(6e4,5,"Int16",color="C0")
 
-ax1.text(2e5,3.7,"LogFixPoint16",color="C6",rotation=0)
-ax1.text(1e10,3.2,"BLogFixPoint16",color="C5",rotation=0)
+ax1.text(2e5,3.7,"LogFixPoint16",color="C1",rotation=0)
+ax1.text(1e10,3.2,"BLogFixPoint16",color="C3",rotation=0)
 
 ax1.set_title("Decimal precision",loc="left")
 
