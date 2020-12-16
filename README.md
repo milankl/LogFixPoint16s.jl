@@ -3,7 +3,7 @@
 
 # LogFixPoint16s.jl
 
-Exports LogFixPoint16 - a 16bit [logarithmic fixed-point number](https://en.wikipedia.org/wiki/Logarithmic_number_system) format with adjustable numbers of integer and fraction bits.
+Provides LogFixPoint16 - a (software-implemented) 16-bit [logarithmic fixed-point number](https://en.wikipedia.org/wiki/Logarithmic_number_system) format with adjustable numbers of integer and fraction bits.
 
 ### Example use
 
