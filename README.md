@@ -27,7 +27,7 @@ Exports `LogFixPoint16, iszero, isnan, signbit, zero, nan, floatmin, floatmax, o
 
 Although `LogFixPoint16` is always a 16-bit format, the number of fraction bits (in exchange for integer bits) can be adjusted between 7 and 11. For 7 fraction bits, `LogFixPoint16` has a similar dynamic range-precision trade-off as `BFloat16`; 10 fraction bits are similar to `Float16`.
 
-```
+```julia
 julia> LogFixPoint16s.set_nfrac(7)
 ┌ Warning: LogFixPoint16 was changed to 8 integer and 7 fraction bits.
 └ @ Main.LogFixPoint16s ~/git/LogFixPoint16s.jl/src/LogFixPoint16s.jl:24
