@@ -49,6 +49,7 @@ const nint = Ref{Int}(15-nfrac[])
 const scale = Ref{Int}(2^nfrac[])
 const scale_over_logof2 = Ref{Float32}(scale[]/log(2f0))
 const max_nfrac_supported = 11
+const rounding_mode = Ref{Symbol}(:lin)
 
 """ 32-bit value of floatmax/min are derived from
 
@@ -76,7 +77,11 @@ Then we find a constant c_b to be added before rounding by
 
     1.5 = c_b + 2*log2(f2*)
     => c_b = 1.5 - s*log2(f2*)"""
-const c_b = Ref{Float32}(Float32(1.5-scale[]*log2(2^(1/scale[]-1) + 2^(2/scale[]-1))))
+function rounding_correction(s::Int)
+    return 1.5-s*log2(2^(1/s-1) + 2^(2/s-1))
+end
+
+const c_b = Ref{Float32}(Float32(rounding_correction(scale[])))
 
 """Convert a Float32 to LogFixPoint16 via the base-2 logarithm and rounding.
 Round to nearest is applied in lin-space due to the addition of c_b."""
