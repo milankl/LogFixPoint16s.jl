@@ -32,6 +32,13 @@ julia> LogFixPoint16s.set_nfrac(7)
 ┌ Warning: LogFixPoint16 was changed to 8 integer and 7 fraction bits.
 └ @ Main.LogFixPoint16s ~/git/LogFixPoint16s.jl/src/LogFixPoint16s.jl:24
 ```
+Furthermode the rounding mode can be changed from round-to-nearest in linear space (default) to log space
+```julia
+julia> LogFixPoint16s.set_rounding_mode(:log)
+┌ Warning: LogFixPoint16 rounding mode changed to round to nearest in log-space.
+└ @ LogFixPoint16s ~/.julia/packages/LogFixPoint16s/TGYbV/src/change_format.jl:48
+```
+The two arguments `:lin` and `:log` are allowed.
 
 ### Theory
 
