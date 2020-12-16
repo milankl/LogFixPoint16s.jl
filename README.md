@@ -33,29 +33,25 @@ julia> LogFixPoint16s.set_nfrac(7)
 └ @ Main.LogFixPoint16s ~/git/LogFixPoint16s.jl/src/LogFixPoint16s.jl:24
 ```
 
-### Bias
-
-Currently, `LogFixPoint16` is slightly biased away from zero, but is positive/negative bias-free.
-
 ### Theory
 
-A number `X` is encoded as LogFixPoint16 as
+A real number `x` is encoded in LogFixPoint16 as
 
 ```
-X = (-1)^s * 2^x
+x = (-1)^s * 2^k
 ```
-with `s` being the sign bit and `x` the fixed-point number in the exponent. E.g. the number `3` is encoded as
+with `s` being the sign bit and `k = i+f` the fixed-point number in the exponent, consisting of a signed integer `i` and a fraction `f`, which is defined as the significant bits for floating-point numbers. E.g. the number `3` is encoded as
 
 ```julia
 julia> bitstring(LogFixPoint16(3),:split)
 "0 1000001 10010110"
 ```
-The sign bit is `0`, the sign bit of the signed integer is `1` (meaning +, [excess-8](https://en.wikipedia.org/wiki/Signed_number_representations#Comparison_table) representation) such that the integer bits equal to `1`. The fraction bits are 1/2 + 1/16 + 1/64 + 1/128. Together this is
+The sign bit is `0`, the sign bit of the signed integer is `1` (meaning + due to the biases [excess](https://en.wikipedia.org/wiki/Signed_number_representations#Comparison_table) representation) such that the integer bits equal to `1`. The fraction bits are 1/2 + 1/16 + 1/64 + 1/128. Together this is
 
 ```
 0 1000001 10010110 = +2^(1 + 1/2 + 1/16 + 1/64 + 1/128) = 2^1.5859375 ≈ 3
 ```
-The only exceptions are the bitpatterns `0x0000` (zero) and `0x8000` (Not-a-Real, NaR). The smallest/largest representable numbers are
+The only exceptions are the bitpatterns `0x0000` (zero) and `0x8000` (Not-a-Real, NaR). The smallest/largest representable numbers are (6 integer bits, 9 fraction bits)
 
 ```julia
 julia> floatmin(LogFixPoint16)
@@ -67,9 +63,9 @@ LogFixPoint16(4.2891566e9)
  
 ### Decimal precision
 
-Logarithmic fixed-point numbers are placed equi-distantly on a log-scale. Consequently, their decimal precision is perfectly flat throughout the dynamic range of representable numbers. In contrast, floating-point numbers are only equi-distant in logarithmic space when the significand is held fixed; the significant bits, however, are placed equi-distant in linear space.
+Logarithmic fixed-point numbers are placed equi-distantly on a log-scale. Consequently, their decimal precision is perfectly flat throughout the dynamic range of representable numbers. In contrast, floating-point numbers are only equi-distant in logarithmic space when the significand is held fixed; the significant bits, however, are linearly spaced.
 
-As a consequence there is no rounding error for logarithmic fixed-point numbers in multiplication, division or power/root - similarly as there is no rounding error for fixed-point numbers for addition and subtraction.
+As a consequence there is no rounding error for logarithmic fixed-point numbers in multiplication, division, power of 2 or square root - similarly as there is no rounding error for fixed-point numbers for addition and subtraction - as long as no over or underflow occurs.
 
 ![decimal precision](figs/decimal_precision.png?raw=true "decimal precision")
 
