@@ -76,9 +76,10 @@ With some scale s. Now f2 is not the arithmetic mean of f1,f3. Let f2* be that m
 Then we find a constant c_b to be added before rounding by
 
     1.5 = c_b + 2*log2(f2*)
-    => c_b = 1.5 - s*log2(f2*)"""
+    => c_b = 1.5 - s*log2(f2*)
+           = 1/2 - s*(log2(2^(1/s) + 1) - 1)"""
 function rounding_correction(s::Int)
-    return 1.5-s*log2(2^(1/s-1) + 2^(2/s-1))
+    return 1/2 - s*(log2(2^(1/s)+1)-1) 
 end
 
 const c_b = Ref{Float32}(Float32(rounding_correction(scale[])))
