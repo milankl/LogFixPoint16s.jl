@@ -1,4 +1,5 @@
 # LogFixPoint16s.jl
+[![CI](https://github.com/milankl/LogFixPoint16s.jl/actions/workflows/CI.yml/badge.svg)](https://github.com/milankl/LogFixPoint16s.jl/actions/workflows/CI.yml)
 
 Provides LogFixPoint16 - a (software-implemented) 16-bit [logarithmic fixed-point number](https://en.wikipedia.org/wiki/Logarithmic_number_system) format with adjustable numbers of integer and fraction bits.
 
