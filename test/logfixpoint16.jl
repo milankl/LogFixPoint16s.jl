@@ -185,7 +185,9 @@ end
 
 @testset "max diff resolvable" begin
     @test LogFixPoint16s.addTable[LogFixPoint16s.max_diff_resolvable[]] == 1
-    @test LogFixPoint16s.addTable[LogFixPoint16s.max_diff_resolvable[]+1] == 0
+    if LogFixPoint16s.nfrac[] < 11
+        @test LogFixPoint16s.addTable[LogFixPoint16s.max_diff_resolvable[]+1] == 0
+    end
 end
 
 @testset "subtraction all" begin
