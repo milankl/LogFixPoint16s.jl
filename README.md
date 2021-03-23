@@ -1,6 +1,3 @@
-[![Build Status](https://travis-ci.com/milankl/LogFixPoint16s.jl.svg?branch=master)](https://travis-ci.com/milankl/LogFixPoint16s.jl)
-[![Build Status](https://ci.appveyor.com/api/projects/status/github/milankl/LogFixPoint16s.jl?svg=true)](https://ci.appveyor.com/project/milankl/LogFixPoint16s-jl)
-
 # LogFixPoint16s.jl
 
 Provides LogFixPoint16 - a (software-implemented) 16-bit [logarithmic fixed-point number](https://en.wikipedia.org/wiki/Logarithmic_number_system) format with adjustable numbers of integer and fraction bits.
@@ -93,10 +90,10 @@ And then benchmark via `@btime +($A,$B):` and so on. Then relative to `Float64` 
 
 | Operation           | Float64 | Float32 | BFloat16 | Float16 | LogFixPoint16 |
 | ------------------- | ------- | ------- | -------- | ------- | ------------- |
-| Addition (+)        |    1    |   0.38  |   0.48   | 14.3    | 3.15          |
-| Multiplication (.*) |    0.94 |   0.38  |   0.48   | 14.9    | 0.45          |
-| Power (.^2)         |    0.61 |   0.26  |   1.8    | 10.7    | 0.66*         | 
-| Square-root (sqrt.) |    1.49 |   0.79  |   1.55   | 13.2    | 0.13          |
+| Addition (+)        | 1200μs  |   500μs |   400μs  | 1800μs  | 6500μs        |
+| Multiplication (.*) | 1200μs  |   500μs |   400μs  | 2500μs  | 250μs         |
+| Power (.^2)         |  700μs  |   300μs |  2800μs  | 1000μs  | 700μs (*)     | 
+| Square-root (sqrt.) | 1800μs  |   900μs |  1800μs  | 1200μs  | 170μs         |
 
 On an Intel i5 (Ice Lake). (*) via `power2`.
 
