@@ -1,6 +1,6 @@
 # LogFixPoint16s.jl
 
-Exports LogFixPoint16 - a 16-bit [logarithmic fixed-point number](https://en.wikipedia.org/wiki/Logarithmic_number_system) format with adjustable numbers of integer and fraction bits.
+Provides LogFixPoint16 - a (software-implemented) 16-bit [logarithmic fixed-point number](https://en.wikipedia.org/wiki/Logarithmic_number_system) format with adjustable numbers of integer and fraction bits.
 
 ### Example use
 
@@ -24,11 +24,18 @@ Exports `LogFixPoint16, iszero, isnan, signbit, zero, nan, floatmin, floatmax, o
 
 Although `LogFixPoint16` is always a 16-bit format, the number of fraction bits (in exchange for integer bits) can be adjusted between 7 and 11. For 7 fraction bits, `LogFixPoint16` has a similar dynamic range-precision trade-off as `BFloat16`; 10 fraction bits are similar to `Float16`.
 
-```
+```julia
 julia> LogFixPoint16s.set_nfrac(7)
 ┌ Warning: LogFixPoint16 was changed to 8 integer and 7 fraction bits.
 └ @ Main.LogFixPoint16s ~/git/LogFixPoint16s.jl/src/LogFixPoint16s.jl:24
 ```
+Furthermode the rounding mode can be changed from round-to-nearest in linear space (default) to log space
+```julia
+julia> LogFixPoint16s.set_rounding_mode(:log)
+┌ Warning: LogFixPoint16 rounding mode changed to round to nearest in log-space.
+└ @ LogFixPoint16s ~/.julia/packages/LogFixPoint16s/TGYbV/src/change_format.jl:48
+```
+The two arguments `:lin` and `:log` are allowed.
 
 ### Theory
 
