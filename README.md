@@ -107,3 +107,9 @@ On an Intel i5 (Ice Lake). (*) via `power2`.
 julia> ] add LogFixPoint16s
 ```
 where `]` opens the package manager.
+
+### Citation
+
+If you use this package in your work please credit us by citing
+
+> Klöwer M, PV Coveney, EA Paxton, and TN Palmer. _Periodic orbits in chaotic systems simulated at low precision_. **Scientific Reports** 13, 11410 (2023). DOI:[10.1038/s41598-023-37004-4](https://doi.org/10.1038/s41598-023-37004-4)
